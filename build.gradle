@@ -29,9 +29,24 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+task idlj() << {
+    String idlj = "/usr/lib/jvm/java-8-openjdk-amd64/bin/idlj"
+    String[][] idls = [["src/main/java", "idl/Hello.idl"]]
+    for (item in idls) {
+        String dir = item[0]
+        String idl = item[1]
+        String command = """${idlj}  -td ${dir} -fallTie ${idl}"""
+
+        println command
+        String test = command.execute().text
+    }
+}
+
+compileJava.dependsOn idlj
+
 task rmic(dependsOn: compileJava) << {
     String[] classes = [
-        'HelloImpl'
+        'rmi.HelloImpl'
     ]
     for (classe in classes) {
         String command = """rmic -iiop -classpath ${sourceSets.main.output.classesDir} -d ${sourceSets.main.output.classesDir} ${classe}"""

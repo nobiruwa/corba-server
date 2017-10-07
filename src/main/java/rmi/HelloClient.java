@@ -1,3 +1,5 @@
+package rmi;
+
 //HelloClient.java
 import java.rmi.RemoteException;
 import java.net.MalformedURLException;
@@ -7,6 +9,8 @@ import java.util.Vector;
 import javax.naming.NamingException;
 import javax.naming.InitialContext;
 import javax.naming.Context;
+
+import rmi.HelloInterface;
 
 public class HelloClient {
 
