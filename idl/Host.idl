@@ -1,0 +1,10 @@
+module hostmock
+{
+    module corba
+    {
+        interface Host
+        {
+            void sndAndRcv(in wstring inq, out wstring ans);
+        };
+    };
+};
