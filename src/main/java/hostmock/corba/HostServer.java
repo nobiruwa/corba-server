@@ -7,6 +7,7 @@ import org.omg.PortableServer.POAHelper;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.CosNaming.NameComponent;
+import org.omg.CORBA.UserException;
 
 class HostImpl extends HostPOA {
     private ORB orb;
@@ -30,42 +31,50 @@ class HostImpl extends HostPOA {
 }
 
 public class HostServer {
+    public void run(int port) throws UserException {
+        String[] args = new String[]{
+            "-ORBInitialPort",
+            String.valueOf(port)
+        };
+        // create and initialize the ORB
+        ORB orb = ORB.init(args, null);
+
+        // Get reference to rootpoa & activate the POAManager
+        POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+        rootpoa.the_POAManager().activate();
+
+        // create servant and register it with the ORB
+        HostImpl hostImpl = new HostImpl();
+        hostImpl.setORB(orb);
+
+        // create a tie, with servant being the delegate.
+        HostPOATie tie = new HostPOATie(hostImpl, rootpoa);
+
+        // obtain the objectRef for the tie
+        // this step also implicitly activates the object
+        Host href = tie._this(orb);
+
+        // get the root naming context
+        org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+
+        // Use NamingContextExt which is part of the Interoperable
+        // Naming Service specification.
+        NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+
+        // bind the Object Reference in Naming
+        String name = "Host";
+        NameComponent path[] = ncRef.to_name( name );
+        ncRef.rebind(path, href);
+
+        System.out.println("HostServer ready and waiting ...");
+
+        // wait for invocations from clients
+        orb.run();
+    }
     public static void main(String[] args) {
         try {
-            // create and initialize the ORB
-            ORB orb = ORB.init(args, null);
-
-            // Get reference to rootpoa & activate the POAManager
-            POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
-            rootpoa.the_POAManager().activate();
-
-            // create servant and register it with the ORB
-            HostImpl hostImpl = new HostImpl();
-            hostImpl.setORB(orb);
-
-            // create a tie, with servant being the delegate.
-            HostPOATie tie = new HostPOATie(hostImpl, rootpoa);
-
-            // obtain the objectRef for the tie
-            // this step also implicitly activates the object
-            Host href = tie._this(orb);
-
-            // get the root naming context
-            org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
-
-            // Use NamingContextExt which is part of the Interoperable
-            // Naming Service specification.
-            NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
-
-            // bind the Object Reference in Naming
-            String name = "Host";
-            NameComponent path[] = ncRef.to_name( name );
-            ncRef.rebind(path, href);
-
-            System.out.println("HostServer ready and waiting ...");
-
-            // wait for invocations from clients
-            orb.run();
+            HostServer server = new HostServer();
+            server.run(1050);
         } catch (Exception e) {
             System.err.println("ERROR: " + e);
             e.printStackTrace(System.out);

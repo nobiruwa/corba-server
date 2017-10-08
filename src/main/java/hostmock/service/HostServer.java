@@ -8,17 +8,21 @@ import java.net.URI;
 import java.io.IOException;
 
 public class HostServer {
-    static final URI BASE_URI = UriBuilder.fromUri("http://localhost/").port(8090).build();
-    public static void main(String[] args) {
-        try {
-        final HttpServer server = GrizzlyHttpServerFactory.createHttpServer(
-BASE_URI,
-ResourceConfig.forApplicationClass(RsResourceConfig.class)
-);
+    private URI baseUri = null;
+    private HttpServer server = null;
+
+    public void start(int port) {
+        this.baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
+        this.server = GrizzlyHttpServerFactory.createHttpServer(
+                this.baseUri,
+                ResourceConfig.forApplicationClass(RsResourceConfig.class)
+            );
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdownNow));
-        } catch (Exception e) {
-            System.err.println("ERROR: " + e);
-            e.printStackTrace(System.out);
+    }
+
+    public void shutdown() {
+        if (this.server != null) {
+            this.server.stop();
         }
     }
 
@@ -28,4 +32,8 @@ ResourceConfig.forApplicationClass(RsResourceConfig.class)
         }
     }
 
+    public static void main(String[] args) {
+        HostServer server = new HostServer();
+        server.start(8090);
+    }
 }
