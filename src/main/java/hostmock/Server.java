@@ -1,38 +1,39 @@
 package hostmock;
 
+import hostmock.corba.HostServer;
+import hostmock.service.ServiceServer;
+import hostmock.SharedSingleton;
+
 import java.lang.Void;
 import java.lang.Thread;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class Server {
-    private static final String PROPERTIES_FILE = "hostmock.properties";
-    private static String loadProperties() {
-        PropertiesLoader pLoader = new PropertiesLoader();
-        return pLoader.searchClassLoader(PROPERTIES_FILE);
-    }
     public static void main(String[] args) throws Exception {
-        System.out.println(loadProperties());
+        ServerConfiguration configuration = SharedSingleton.getInstance().configuration;
         ExecutorService es = Executors.newFixedThreadPool(1);
-        hostmock.service.HostServer serviceServer = new hostmock.service.HostServer();
+        ServiceServer serviceServer = new ServiceServer(configuration.service);
         try {
-            serviceServer.start(8090);
-            es.execute(() -> {
+            serviceServer.start();
+            Future<?> future = es.submit(() -> {
                     try {
-                        hostmock.corba.HostServer hostServer = new hostmock.corba.HostServer();
-                        hostServer.run(1050);
+                        HostServer hostServer = new HostServer(configuration.corba);
+                        hostServer.run();
                     } catch (Exception e) {
                         System.err.println("ERROR: " + e);
                         e.printStackTrace(System.out);
                     }
                 });
+            Object a = future.get();
         } finally {
-            es.shutdown();
-            es.awaitTermination(1, TimeUnit.MINUTES);
+            es.shutdownNow();
             serviceServer.shutdown();
         }
     }

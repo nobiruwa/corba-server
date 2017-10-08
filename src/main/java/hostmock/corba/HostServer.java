@@ -1,5 +1,9 @@
 package hostmock.corba;
 
+import hostmock.TelegramFinder;
+import hostmock.SharedSingleton;
+
+import java.io.IOException;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.StringHolder;
 import org.omg.PortableServer.POA;
@@ -18,26 +22,35 @@ class HostImpl extends HostPOA {
 
     @Override
     public void sndAndRcv(String inq, StringHolder ans) {
-        ans.value = this.createAns(this.parseInq(inq));
-    }
-
-    private String parseInq(String inq) {
-        return inq.toLowerCase();
-    }
-
-    private String createAns(String parsedInq) {
-        return parsedInq + "ANS日本語";
+        String ansDir = SharedSingleton.getInstance().configuration.corba.ansDir;
+        TelegramFinder ansFinder = new TelegramFinder(ansDir);
+        try {
+            if (ansFinder.exists(inq)) {
+                String content = ansFinder.read(inq);
+                ans.value = content;
+                return;
+            }
+            ans.value = "could not find an ans telegram '"+ inq +"' from " + ansDir;
+            return;
+        } catch (IOException e) {
+            ans.value = "could not load an ans telegram.";
+            return;
+        }
     }
 }
 
 public class HostServer {
-    public void run(int port) throws UserException {
-        String[] args = new String[]{
+    private HostConfiguration configuration;
+    public HostServer(HostConfiguration configuration) {
+        this.configuration = configuration;
+    }
+    public void run() throws UserException {
+        String[] orbArgs = new String[]{
             "-ORBInitialPort",
-            String.valueOf(port)
+            String.valueOf(this.configuration.orbInitialPort)
         };
         // create and initialize the ORB
-        ORB orb = ORB.init(args, null);
+        ORB orb = ORB.init(orbArgs, null);
 
         // Get reference to rootpoa & activate the POAManager
         POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
@@ -70,15 +83,5 @@ public class HostServer {
 
         // wait for invocations from clients
         orb.run();
-    }
-    public static void main(String[] args) {
-        try {
-            HostServer server = new HostServer();
-            server.run(1050);
-        } catch (Exception e) {
-            System.err.println("ERROR: " + e);
-            e.printStackTrace(System.out);
-        }
-        System.out.println("HostServer Exiting ...");
     }
 }

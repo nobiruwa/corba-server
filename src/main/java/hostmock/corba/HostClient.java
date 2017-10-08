@@ -1,5 +1,8 @@
 package hostmock.corba;
 
+import hostmock.PropertiesLoader;
+
+import java.util.Properties;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.Object;
 import org.omg.CORBA.StringHolder;
@@ -7,10 +10,23 @@ import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
 
 public class HostClient {
+    private static final String PROPERTIES_FILE = "hostmock.properties";
+    private static Properties loadProperties() {
+        PropertiesLoader pLoader = new PropertiesLoader();
+        return pLoader.load(PROPERTIES_FILE);
+    }
+    private static HostConfiguration loadConfiguration(Properties properties) {
+        return new HostConfiguration(properties);
+    }
     public static void main(String[] args) {
+        HostConfiguration configuration = HostClient.loadConfiguration(HostClient.loadProperties());
         try {
+            String[] orbArgs = new String[]{
+                "-ORBInitialPort",
+                String.valueOf(configuration.orbInitialPort)
+            };
             // create and initialize the ORB
-            ORB orb = ORB.init(args, null);
+            ORB orb = ORB.init(orbArgs, null);
 
             // get the root naming context
             org.omg.CORBA.Object objRef =
@@ -26,7 +42,7 @@ public class HostClient {
 
             System.out.println("Obtained a handle on server object: " + hostImpl);
             StringHolder ans = new StringHolder();
-            hostImpl.sndAndRcv("this is inq.", ans);
+            hostImpl.sndAndRcv("sample", ans);
             System.out.println(ans.value);
         } catch (Exception e) {
             System.out.println("ERROR : " + e) ;

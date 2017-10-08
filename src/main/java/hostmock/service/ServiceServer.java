@@ -7,12 +7,15 @@ import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.io.IOException;
 
-public class HostServer {
+public class ServiceServer {
     private URI baseUri = null;
     private HttpServer server = null;
-
-    public void start(int port) {
-        this.baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(port).build();
+    private ServiceConfiguration configuration = null;
+    public ServiceServer(ServiceConfiguration configuration) {
+        this.configuration = configuration;
+    }
+    public void start() {
+        this.baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(configuration.port).build();
         this.server = GrizzlyHttpServerFactory.createHttpServer(
                 this.baseUri,
                 ResourceConfig.forApplicationClass(RsResourceConfig.class)
@@ -30,10 +33,5 @@ public class HostServer {
         public RsResourceConfig() {
             packages("hostmock.service.resource");
         }
-    }
-
-    public static void main(String[] args) {
-        HostServer server = new HostServer();
-        server.start(8090);
     }
 }
