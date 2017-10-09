@@ -1,0 +1,4 @@
+# -*- mode: restclient; -*-
+DELETE http://localhost:8090/ans/sample
+Content-Type: application/json
+charset: utf-8

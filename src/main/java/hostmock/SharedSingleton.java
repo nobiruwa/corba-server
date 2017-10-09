@@ -10,6 +10,7 @@ public class SharedSingleton {
 
     public final ServerConfiguration configuration;
     public final ConcurrentHashMap<String, String> cachedAns;
+    public final ConcurrentHashMap<String, String> cachedEx;
 
     private Properties loadProperties() {
         PropertiesLoader pLoader = new PropertiesLoader();
@@ -23,6 +24,7 @@ public class SharedSingleton {
     private SharedSingleton() {
         this.configuration = this.loadConfiguration(this.loadProperties());
         this.cachedAns = new ConcurrentHashMap<String, String>();
+        this.cachedEx = new ConcurrentHashMap<String, String>();
     }
     public static synchronized SharedSingleton getInstance() {
         if(instance == null) {

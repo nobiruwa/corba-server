@@ -15,13 +15,15 @@ $ ./docker-run.sh
 
 ## Java IDL with POA-Tie Server-Side Model
 
-### HelloServer & HelloClient
+### TCPServer <-> CORBA-Web Server <-> CORBA Client or Web Client
 
 ```
 $ ./docker-init.sh
 $ ./docker-run.sh
 # gradle build
 # orbd -ORBInitialPort 1050 &
-# java -cp build/libs/workspace.jar poa.HelloServer -ORBInitialPort 1050 &
-# java -cp build/libs/workspace.jar poa.HelloClient -ORBInitialPort 1050
+# java -cp build/libs/workspace.jar hostmock.service.TCPServer 8005 &
+# java -cp build/libs/workspace.jar hostmock.Server &
+# java -cp build/libs/workspace.jar hostmock.corba.HostClient
+# java -cp build/libs/workspace.jar hostmock.service.ServiceClient
 ```

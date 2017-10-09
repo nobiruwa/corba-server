@@ -1,8 +1,10 @@
 package hostmock.corba;
 
+import hostmock.IORWriter;
 import hostmock.TelegramFinder;
 import hostmock.SharedSingleton;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.StringHolder;
@@ -24,6 +26,12 @@ class HostImpl extends HostPOA {
     public void sndAndRcv(String inq, StringHolder ans) {
         String ansDir = SharedSingleton.getInstance().configuration.corba.ansDir;
         TelegramFinder ansFinder = new TelegramFinder(ansDir);
+        ConcurrentHashMap<String, String> cachedEx = SharedSingleton.getInstance().cachedAns;
+        if (cachedEx.containsKey(inq)) {
+            String content = cachedEx.get(inq);
+            ans.value = content;
+            return;
+        }
         try {
             if (ansFinder.exists(inq)) {
                 String content = ansFinder.read(inq);
@@ -44,6 +52,25 @@ public class HostServer {
     public HostServer(HostConfiguration configuration) {
         this.configuration = configuration;
     }
+    private Boolean isWindows() {
+        return System.getProperty("os.name").indexOf("win") >= 0;
+    }
+    private String getIORFilePath() {
+        if (this.isWindows()) {
+            return this.configuration.winPath;
+        } else {
+            return this.configuration.linuxPath;
+        }
+    }
+    private String getIORXPath() {
+        return this.configuration.xPath;
+    }
+    private void updateIORFile(String ior) {
+        String filePath = this.getIORFilePath();
+        String xPath = this.getIORXPath();
+        IORWriter writer = new IORWriter(filePath, xPath);
+        writer.write(ior);
+    }
     public void run() throws UserException {
         String[] orbArgs = new String[]{
             "-ORBInitialPort",
@@ -60,12 +87,16 @@ public class HostServer {
         HostImpl hostImpl = new HostImpl();
         hostImpl.setORB(orb);
 
+
         // create a tie, with servant being the delegate.
         HostPOATie tie = new HostPOATie(hostImpl, rootpoa);
 
         // obtain the objectRef for the tie
         // this step also implicitly activates the object
         Host href = tie._this(orb);
+
+        // write IOR to XML file
+        this.updateIORFile(orb.object_to_string(href));
 
         // get the root naming context
         org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");

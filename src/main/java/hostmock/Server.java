@@ -21,6 +21,7 @@ public class Server {
         ExecutorService es = Executors.newFixedThreadPool(1);
         ServiceServer serviceServer = new ServiceServer(configuration.service);
         try {
+            java.util.logging.Logger.getLogger("org.glassfish.grizzly").setLevel(java.util.logging.Level.ALL);
             serviceServer.start();
             Future<?> future = es.submit(() -> {
                     try {

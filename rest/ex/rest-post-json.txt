@@ -1,0 +1,4 @@
+# -*- mode: restclient; -*-
+POST http://localhost:8090/ex/取引ABC123
+Content-Type: application/json
+charset: utf-8

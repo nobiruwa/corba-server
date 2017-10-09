@@ -34,7 +34,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-task idlj() << {
+task idlj() doLast {
     String idlj = "/usr/lib/jvm/java-8-openjdk-amd64/bin/idlj"
     String[][] idls = [
         ["src/main/java", "idl/Hello.idl"],
@@ -51,8 +51,12 @@ task idlj() << {
 }
 
 compileJava.dependsOn idlj
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:deprecation"
+}
 
-task rmic(dependsOn: compileJava) << {
+task rmic(dependsOn: compileJava) doLast {
     String[] classes = [
         'rmi.HelloImpl'
     ]
