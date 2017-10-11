@@ -46,19 +46,19 @@ public class ServiceClient {
         HttpURLConnection con = null;
         StringBuilder result = new StringBuilder();
         try {
-            URL url = new URL("http://localhost:" + String.valueOf(configuration.port) + "/ex");
-            String parameter = "exname=" + "sample" + "&exaddress=" + configuration.exAddress + "&export=" + String.valueOf(configuration.exPort) + "&expath=" + String.valueOf(configuration.exPath);
-            byte[] postData = parameter.getBytes("UTF-8");
+            URL url = new URL("http://localhost:" + String.valueOf(configuration.port) + "/ex/sample");
+            // String parameter = "exname=" + "sample" + "&exaddress=" + configuration.exAddress + "&export=" + String.valueOf(configuration.exPort) + "&expath=" + String.valueOf(configuration.exPath);
+            // byte[] postData = parameter.getBytes("UTF-8");
             con = (HttpURLConnection)url.openConnection();
             con.setDoOutput(true);
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             con.setRequestProperty("charset", "utf-8");
-            con.setRequestProperty("Content-Length", Integer.toString(postData.length));
+            // con.setRequestProperty("Content-Length", Integer.toString(postData.length));
             con.setUseCaches(false);
-            try(DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-                wr.write(postData);
-            }
+            // try(DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+            //     wr.write(postData);
+            // }
             con.connect();
 
             final int status = con.getResponseCode();

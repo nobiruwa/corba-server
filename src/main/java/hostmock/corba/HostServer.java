@@ -3,8 +3,9 @@ package hostmock.corba;
 import hostmock.IORWriter;
 import hostmock.TelegramFinder;
 import hostmock.SharedSingleton;
+import hostmock.corba.HostConfiguration;
+import hostmock.CacheMap;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.StringHolder;
@@ -17,18 +18,22 @@ import org.omg.CORBA.UserException;
 
 class HostImpl extends HostPOA {
     private ORB orb;
+    private final String ansDir;
+    private final CacheMap cachedAns;
 
+    public HostImpl(String ansDir, CacheMap cachedAns) {
+        this.ansDir = ansDir;
+        this.cachedAns = cachedAns;
+    }
     public void setORB(ORB orb_val) {
         this.orb = orb_val;
     }
 
     @Override
     public void sndAndRcv(String inq, StringHolder ans) {
-        String ansDir = SharedSingleton.getInstance().configuration.corba.ansDir;
-        TelegramFinder ansFinder = new TelegramFinder(ansDir);
-        ConcurrentHashMap<String, String> cachedEx = SharedSingleton.getInstance().cachedAns;
-        if (cachedEx.containsKey(inq)) {
-            String content = cachedEx.get(inq);
+        TelegramFinder ansFinder = new TelegramFinder(this.ansDir);
+        if (this.cachedAns.containsKey(inq)) {
+            String content = this.cachedAns.get(inq);
             ans.value = content;
             return;
         }
@@ -38,7 +43,7 @@ class HostImpl extends HostPOA {
                 ans.value = content;
                 return;
             }
-            ans.value = "could not find an ans telegram '"+ inq +"' from " + ansDir;
+            ans.value = "could not find an ans telegram '"+ inq +"' from " + this.ansDir;
             return;
         } catch (IOException e) {
             ans.value = "could not load an ans telegram.";
@@ -48,9 +53,11 @@ class HostImpl extends HostPOA {
 }
 
 public class HostServer {
+    private final CacheMap cachedAns;
     private HostConfiguration configuration;
-    public HostServer(HostConfiguration configuration) {
+    public HostServer(final HostConfiguration configuration, final CacheMap cachedAns) {
         this.configuration = configuration;
+        this.cachedAns = cachedAns;
     }
     private Boolean isWindows() {
         return System.getProperty("os.name").indexOf("win") >= 0;
@@ -84,7 +91,7 @@ public class HostServer {
         rootpoa.the_POAManager().activate();
 
         // create servant and register it with the ORB
-        HostImpl hostImpl = new HostImpl();
+        HostImpl hostImpl = new HostImpl(this.configuration.ansDir, this.cachedAns);
         hostImpl.setORB(orb);
 
 

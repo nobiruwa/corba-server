@@ -3,10 +3,8 @@ package hostmock.service.resource;
 import hostmock.TelegramFinder;
 import hostmock.service.ExSender;
 import hostmock.service.ServiceConfiguration;
+import hostmock.CacheMap;
 
-import hostmock.SharedSingleton;
-
-import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,18 +17,25 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.MediaType;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 @Path("/ex")
 public class Ex {
+    @Inject
+    private ServiceConfiguration configuration;
+    @Inject
+    @Named("cachedEx")
+    private CacheMap cachedEx;
+
     private Response _ex(String exName) {
-        ServiceConfiguration config = SharedSingleton.getInstance().configuration.service;
-        String exAddress = config.exAddress;
-        int exPort = config.exPort;
-        int exPath = config.exPath;
-        String exDir = config.exDir;
+        String exAddress = this.configuration.exAddress;
+        int exPort = this.configuration.exPort;
+        int exPath = this.configuration.exPath;
+        String exDir = this.configuration.exDir;
         ExSender exSender = new ExSender(exAddress, exPort, exPath);
-        ConcurrentHashMap<String, String> cachedEx = SharedSingleton.getInstance().cachedEx;
-        if (cachedEx.containsKey(exName)) {
-            String content = cachedEx.get(exName);
+        if (this.cachedEx.containsKey(exName)) {
+            String content = this.cachedEx.get(exName);
             exSender.send(content);
             return Response.ok(exName + " in " + "cache").build();
         }
@@ -58,14 +63,14 @@ public class Ex {
     @Path("{exname}")
     public Response put(@PathParam("exname") String exName, ExWithBodyRequest request) {
         String exBody = request.body;
-        SharedSingleton.getInstance().cachedEx.put(exName, exBody);
+        this.cachedEx.put(exName, exBody);
         return Response.ok(exName + " in " + "cache").build();
     }
     @DELETE
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Path("{exname}")
     public Response delete(@PathParam("exname") String exName) {
-        SharedSingleton.getInstance().cachedEx.remove(exName);
+        this.cachedEx.remove(exName);
         return Response.ok(exName + " in " + "cache").build();
     }
 }

@@ -1,5 +1,6 @@
 package hostmock;
 
+import hostmock.CacheMap;
 import hostmock.ServerConfiguration;
 import hostmock.PropertiesLoader;
 import java.util.Properties;
@@ -9,8 +10,8 @@ public class SharedSingleton {
     private static final String PROPERTIES_FILE = "hostmock.properties";
 
     public final ServerConfiguration configuration;
-    public final ConcurrentHashMap<String, String> cachedAns;
-    public final ConcurrentHashMap<String, String> cachedEx;
+    public final CacheMap cachedAns;
+    public final CacheMap cachedEx;
 
     private Properties loadProperties() {
         PropertiesLoader pLoader = new PropertiesLoader();
@@ -23,8 +24,8 @@ public class SharedSingleton {
     private static SharedSingleton instance;
     private SharedSingleton() {
         this.configuration = this.loadConfiguration(this.loadProperties());
-        this.cachedAns = new ConcurrentHashMap<String, String>();
-        this.cachedEx = new ConcurrentHashMap<String, String>();
+        this.cachedAns = new CacheMap();
+        this.cachedEx = new CacheMap();
     }
     public static synchronized SharedSingleton getInstance() {
         if(instance == null) {
