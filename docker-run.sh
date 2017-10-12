@@ -8,4 +8,5 @@ docker run \
        -v `pwd`:/workspace \
        -p 1050:1050 \
        -p 8090:8090 \
+       -p 8091:8091 \
        docker-sid-jdk8 $@
