@@ -1,6 +1,8 @@
 package hostmock.corba.clientresource;
 
 import hostmock.corba.Host;
+import hostmock.corba.HostHelper;
+import hostmock.corba.HostClientHelper;
 import hostmock.corba.HostConfiguration;
 import org.omg.CORBA.StringHolder;
 
@@ -24,8 +26,7 @@ public class Root {
     @Inject
     private HostConfiguration configuration;
 
-    @Inject
-    private Host hostImpl;
+    private Host hostImpl = HostClientHelper.createHostImpl();
 
     @POST
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
