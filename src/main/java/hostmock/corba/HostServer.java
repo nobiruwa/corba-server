@@ -80,6 +80,8 @@ public class HostServer {
     }
     public void run() throws UserException {
         String[] orbArgs = new String[]{
+            "-ORBInitialHost",
+            "127.0.0.1",
             "-ORBInitialPort",
             String.valueOf(this.configuration.orbInitialPort)
         };

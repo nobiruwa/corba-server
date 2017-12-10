@@ -25,7 +25,7 @@ class HostClientServer {
         this.configuration = configuration;
     }
     public void start() {
-        this.baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(8091).build();
+        this.baseUri = UriBuilder.fromUri("http://0.0.0.0/").port(18090).build();
         this.server = GrizzlyHttpServerFactory.createHttpServer(
             this.baseUri,
             ResourceConfig.forApplicationClass(RsResourceConfig.class)
